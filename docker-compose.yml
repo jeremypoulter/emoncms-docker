@@ -1,15 +1,11 @@
 # Base docker compose, added to by docker-compose.override or docker-compose.prod. See Readme.md
 
-version: '2'
-
 services:
-  # PHP & apache container using offical Docker PHP iamge
+  # PHP & apache container with s6-overlay managing web server and background workers
   web:
-    # If pre-built image from docker hub exists then use that (docker pull openenergymonitor/emoncms:latest) if not build container see web/Dockerflile
     image: openenergymonitor/emoncms:latest
     build: web/.
     volumes:
-      # mount docker volumes persistant inside docker container
       - emon-phpfina:/var/opt/emoncms/phpfina
       - emon-phptimeseries:/var/opt/emoncms/phptimeseries
     links:
@@ -38,7 +34,7 @@ services:
       driver: json-file
       options:
         max-size: "10m"
-          
+
   mqtt:
     image: eclipse-mosquitto:2.0
     build: mqtt/.
@@ -49,8 +45,6 @@ services:
         max-size: "10m"
 
 volumes:
-  emon-phpfiwa:
-    driver: local
   emon-phpfina:
     driver: local
   emon-phptimeseries:

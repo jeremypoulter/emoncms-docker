@@ -7,7 +7,7 @@ on:
         description: 'php_version'
         required: true
         type: string
-        default: '8.2.27'
+        default: '8.4'
       emoncms_src:
         description: 'emoncms_src'
         required: true

@@ -1,6 +1,11 @@
 # Default docker enviroment variables, change in production enviroment
 
-# MySQL database 
+# General
+TZ=Europe/London
+EMONCMS_DATADIR=/var/opt/emoncms
+EMONCMS_LOG_LEVEL=2
+
+# MySQL database
 MYSQL_HOST=db
 MYSQL_PORT=3306
 MYSQL_DATABASE=emoncms
@@ -13,11 +18,10 @@ MYSQL_INITDB_SKIP_TZINFO=true
 REDIS_ENABLED=true
 REDIS_HOST=redis
 REDIS_PORT=6379
-# At the moment Docker doesn't honour the REDIS_AUTH variable, so it will always be passwordless
-# REDIS_AUTH=
 REDIS_PREFIX='emoncms'
+REDIS_BUFFER=1
 
-# MQTT (needs to be running elsewhere)
+# MQTT
 MQTT_ENABLED=true
 MQTT_HOST=mqtt
 MQTT_CLIENTID=emoncmsmqtt
