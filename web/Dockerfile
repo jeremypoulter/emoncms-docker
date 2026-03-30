@@ -137,16 +137,25 @@ RUN set -x;\
 COPY emoncms_pre.sh sql_ready.sh $OEM_DIR/
 
 # s6-overlay: user bundle (primary services)
+# sql_ready must run before Apache serves traffic (otherwise / hits user_controller with no users table).
+# It was only registered in user2; in s6-overlay v3 the default target may not activate user2, so
+# schema init never ran. sql_ready lives in user with emoncms_pre -> sql_ready -> apache2.
 RUN set -x;\
     mkdir $S6_DIR/emoncms_pre;\
     mkdir $S6_DIR/emoncms_pre/dependencies.d;\
     touch $S6_DIR/emoncms_pre/dependencies.d/base;\
     echo "oneshot" > $S6_DIR/emoncms_pre/type;\
     echo "$OEM_DIR/emoncms_pre.sh" > $S6_DIR/emoncms_pre/up;\
+    mkdir $S6_DIR/sql_ready;\
+    mkdir $S6_DIR/sql_ready/dependencies.d;\
+    touch $S6_DIR/sql_ready/dependencies.d/emoncms_pre;\
+    echo "oneshot" > $S6_DIR/sql_ready/type;\
+    echo "$OEM_DIR/sql_ready.sh" > $S6_DIR/sql_ready/up;\
     touch $S6_DIR/user/contents.d/emoncms_pre;\
+    touch $S6_DIR/user/contents.d/sql_ready;\
     for i in $PRIMOS; do mkdir $S6_DIR/$i; done;\
     for i in $PRIMOS; do mkdir $S6_DIR/$i/dependencies.d; done;\
-    for i in $PRIMOS; do touch $S6_DIR/$i/dependencies.d/emoncms_pre; done;\
+    for i in $PRIMOS; do touch $S6_DIR/$i/dependencies.d/sql_ready; done;\
     for i in $PRIMOS; do touch $S6_DIR/user/contents.d/$i; done;\
     for i in $PRIMOS; do echo "longrun" > $S6_DIR/$i/type; done;\
     echo "#!/command/with-contenv sh" > $S6_DIR/apache2/run;\
@@ -155,12 +164,6 @@ RUN set -x;\
 
 # s6-overlay: user2 bundle (workers)
 RUN set -x;\
-    mkdir $S6_DIR/sql_ready;\
-    mkdir $S6_DIR/sql_ready/dependencies.d;\
-    touch $S6_DIR/sql_ready/dependencies.d/legacy-services;\
-    echo "oneshot" > $S6_DIR/sql_ready/type;\
-    echo "$OEM_DIR/sql_ready.sh" > $S6_DIR/sql_ready/up;\
-    touch $S6_DIR/user2/contents.d/sql_ready;\
     for i in $SECONDOS; do mkdir $S6_DIR/$i; done;\
     for i in $SECONDOS; do mkdir $S6_DIR/$i/dependencies.d; done;\
     for i in $SECONDOS; do touch $S6_DIR/$i/dependencies.d/sql_ready; done;\
