@@ -12,6 +12,9 @@ services:
       - db
       - redis
       - mqtt
+    depends_on:
+      redis:
+        condition: service_healthy
 
   db:
     image: mariadb:11.0
@@ -30,14 +33,30 @@ services:
     image: redis:7.0
     volumes:
       - emon-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+      start_period: 5s
     logging:
       driver: json-file
       options:
         max-size: "10m"
 
+  # No local image build: extra layers on eclipse-mosquitto can hit BuildKit "max depth exceeded"
+  # on some Docker Desktop setups. Config + passwd are applied at container start (see mqtt/setup.sh).
   mqtt:
     image: eclipse-mosquitto:2.0
-    build: mqtt/.
+    volumes:
+      - ./mqtt/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    command:
+      - /bin/sh
+      - -c
+      - |
+        touch /mosquitto/config/passwd
+        /usr/bin/mosquitto_passwd -b /mosquitto/config/passwd emonpi emonpimqtt2016
+        exec /usr/sbin/mosquitto -c /mosquitto/config/mosquitto.conf
     restart: always
     logging:
       driver: json-file

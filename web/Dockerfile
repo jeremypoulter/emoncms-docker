@@ -103,6 +103,9 @@ RUN set -x;\
     cp EmonScripts/install/emonsd.config.ini EmonScripts/install/config.ini
 
 COPY docker.settings.ini /var/www/emoncms/settings.ini
+# Upstream service-runner uses redis.Redis() (localhost); Docker needs REDIS_HOST (see service-runner.py).
+COPY service-runner.py $WWW/emoncms/scripts/services/service-runner/service-runner.py
+RUN chown $DAEMON $WWW/emoncms/scripts/services/service-runner/service-runner.py
 
 # Create folders & set permissions for feed-engine data, logs, and worker lock files
 RUN set -x;\
@@ -134,7 +137,7 @@ RUN set -x;\
     echo "require_once 'Lib/dbschemasetup.php';" >> $OEM_DIR/emoncmsdbupdate.php;\
     echo "print json_encode(db_schema_setup(\$mysqli,load_db_schema(),\$applychanges)).'\n';" >> $OEM_DIR/emoncmsdbupdate.php
 
-COPY emoncms_pre.sh sql_ready.sh $OEM_DIR/
+COPY emoncms_pre.sh sql_ready.sh sync_upload-run.sh $OEM_DIR/
 
 # s6-overlay: user bundle (primary services)
 # sql_ready must run before Apache serves traffic (otherwise / hits user_controller with no users table).
@@ -180,8 +183,8 @@ RUN set -x;\
     echo "    exit 0" >> $S6_DIR/feedwriter/run;\
     echo "fi" >> $S6_DIR/feedwriter/run;\
     echo "exec s6-setuidgid $DAEMON php $WWW/emoncms/scripts/feedwriter.php" >> $S6_DIR/feedwriter/run;\
-    echo "#!/command/with-contenv sh" > $S6_DIR/sync_upload/run;\
-    echo "exec s6-setuidgid $DAEMON php $EMONCMS_DIR/modules/sync/sync_upload.php all bg" >> $S6_DIR/sync_upload/run;\
+    cp $OEM_DIR/sync_upload-run.sh $S6_DIR/sync_upload/run;\
+    chmod +x $S6_DIR/sync_upload/run;\
     chmod +x $OEM_DIR/emoncms_pre.sh;\
     chmod +x $OEM_DIR/sql_ready.sh
 
