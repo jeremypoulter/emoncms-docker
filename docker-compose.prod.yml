@@ -1,6 +1,5 @@
 # production / deployment / clean testing enviroment setup
 
-version: '2'
 services:
 
   web:

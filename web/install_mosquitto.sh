@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Install Mosquitto
+# Build and install Mosquitto-PHP extension
+# Requires libmosquitto-dev to be pre-installed
 cd /
-apt-get install -y libmosquitto-dev
 git clone https://github.com/openenergymonitor/Mosquitto-PHP
 cd Mosquitto-PHP/
 phpize
