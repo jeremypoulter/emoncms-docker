@@ -34,10 +34,10 @@ jobs:
       tags: ${{ steps.tags.outputs.tags }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Resolve PHP image
         id: php
@@ -95,7 +95,7 @@ jobs:
         architecture: [amd64, arm64]
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Build PHP extensions
         run: |
@@ -105,7 +105,7 @@ jobs:
             "$RUNNER_TEMP/extensions"
 
       - name: Upload PHP extensions
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: php-extensions-${{ matrix.architecture }}
           path: ${{ runner.temp }}/extensions/
@@ -120,16 +120,16 @@ jobs:
       packages: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Download amd64 PHP extensions
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: php-extensions-amd64
           path: web/extensions/linux-amd64
 
       - name: Download arm64 PHP extensions
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: php-extensions-arm64
           path: web/extensions/linux-arm64
@@ -140,30 +140,30 @@ jobs:
           test "$(find web/extensions -name '*.so' -type f | wc -l)" -eq 8
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
         with:
           platforms: arm64
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Log in to Docker Hub
         if: needs.metadata.outputs.dockerhub_available == 'true' && github.event_name != 'pull_request'
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Log in to GitHub Container Registry
         if: needs.metadata.outputs.dockerhub_available != 'true' && github.event_name != 'pull_request'
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: ./web
           platforms: linux/amd64,linux/arm64
