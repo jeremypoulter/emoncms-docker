@@ -1,3 +1,4 @@
 emoncms/
 .docker-env
 *~
+web/extensions/

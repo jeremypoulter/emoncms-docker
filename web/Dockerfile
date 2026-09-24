@@ -1,10 +1,11 @@
-ARG BUILD_FROM=php:8.4-apache
+ARG BUILD_FROM=php:8.4-apache-trixie
 
 # Official Docker PHP & Apache image https://hub.docker.com/_/php/
 FROM $BUILD_FROM
 
 ARG \
     TARGETPLATFORM \
+    TARGETARCH \
     S6_OVERLAY_VERSION=3.1.6.2 \
     S6_SRC=https://github.com/just-containers/s6-overlay/releases/download \
     S6_DIR=/etc/s6-overlay/s6-rc.d \
@@ -30,7 +31,7 @@ ENV \
 RUN apt-get update && apt-get install -y --no-install-recommends \
         iproute2 \
         libcurl4-gnutls-dev \
-        libmosquitto-dev \
+        libmosquitto1 \
         gettext \
         nano \
         git-core \
@@ -41,16 +42,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Enable PHP modules
-RUN docker-php-ext-install -j$(nproc) mysqli gettext
-
-# Install phpredis extension
-COPY install_redis.sh /
-RUN chmod +x /install_redis.sh && /install_redis.sh
-
-# Install Mosquitto-PHP extension
-COPY install_mosquitto.sh /
-RUN chmod +x /install_mosquitto.sh && /install_mosquitto.sh
+# Native extensions are cross-compiled and validated before image assembly.
+COPY extensions/linux-${TARGETARCH}/*.so /usr/local/lib/php/extensions/emonos/
+COPY extensions.ini /usr/local/etc/php/conf.d/30-emonos-extensions.ini
+RUN set -eux; \
+    php -r 'foreach (["mysqli", "gettext", "redis", "mosquitto"] as $extension) { if (!extension_loaded($extension)) { exit(1); } }'; \
+    php -r 'if (!class_exists("Redis") || !class_exists("Mosquitto\\Client")) { exit(1); }'; \
+    ! ldd /usr/local/lib/php/extensions/emonos/*.so | grep -q "not found"
 
 RUN a2enmod rewrite
 
