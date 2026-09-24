@@ -6,7 +6,7 @@ cross toolchain rather than emulation. Build them for each target architecture
 before building the image, using the same `BUILD_FROM` image:
 
 ```
-BUILD_FROM=php:8.4-apache
+BUILD_FROM=php:8.4-apache-trixie
 ci/build-extension-artifacts.sh "$BUILD_FROM" amd64 web/extensions/linux-amd64
 ci/build-extension-artifacts.sh "$BUILD_FROM" arm64 web/extensions/linux-arm64
 ```

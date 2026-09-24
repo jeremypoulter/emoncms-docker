@@ -24,6 +24,8 @@ env:
   PHP_VERSION: ${{ inputs.php_version || '8.4' }}
   EMONCMS_SRC: ${{ inputs.emoncms_src || 'emoncms/emoncms' }}
   EMONCMS_BRANCH: ${{ inputs.branch || 'stable' }}
+  # Debian release of the php:<version>-apache-<suite> base image
+  DEBIAN_SUITE: trixie
 
 jobs:
   metadata:
@@ -44,7 +46,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          tag="php:${PHP_VERSION}-apache"
+          tag="php:${PHP_VERSION}-apache-${DEBIAN_SUITE}"
           digest=$(docker buildx imagetools inspect "$tag" --format '{{.Manifest.Digest}}')
           case "$digest" in
             sha256:*) ;;

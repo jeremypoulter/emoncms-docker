@@ -1,4 +1,4 @@
-ARG BUILD_FROM=php:8.4-apache
+ARG BUILD_FROM=php:8.4-apache-trixie
 
 # Official Docker PHP & Apache image https://hub.docker.com/_/php/
 FROM $BUILD_FROM
