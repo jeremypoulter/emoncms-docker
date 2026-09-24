@@ -21,7 +21,7 @@ emonHub docker: https://hub.docker.com/r/alexjunk/emonhub
 
 **Note: This docker installation is not quite a complete Emoncms installation.** In general we recommend building an Emoncms installation using our EmonScripts installation script on a Debian/Ubuntu/RaspberryPi based system, this said this docker image does provide a useful alternative approach to get a simple but functional emoncms installation up and running.
 
-Latest image hosted on docker hub: [openenergymonitor/emoncms:latest](https://hub.docker.com/r/openenergymonitor/emoncms/)
+Latest image hosted on docker hub: [openenergymonitor/emoncms:latest](https://hub.docker.com/r/openenergymonitor/emoncms/) (`linux/amd64` and `linux/arm64`)
 
 ## Quickstart
 
@@ -116,7 +116,16 @@ Edit `config/php.ini` to add custom php settings e.g. timezone (default Europe)
 
 #### Build / update Docker container
 
-Required on first run or if `Dockerfile` or `Docker-compose.yml` are changed:
+Required on first run or if `Dockerfile` or `Docker-compose.yml` are changed.
+
+The PHP extensions are not compiled inside the image. Build them first for your
+architecture (`amd64` or `arm64`), from the repository root:
+
+```bash
+ci/build-extension-artifacts.sh php:8.4-apache-trixie amd64 web/extensions/linux-amd64
+```
+
+See [web/README.md](web/README.md) for details. Then:
 
 ```bash
 docker-compose build
@@ -272,21 +281,19 @@ docker exec -it emoncms-docker_web_1 /bin/bash
 
 ****
 
-## Pushing to docker hub 
+## Publishing images
 
-From: https://docs.docker.com/docker-hub/repos/
+Images are built and published by the
+[Build and Push emoncms Docker Image](.github/workflows/docker-release.yml) workflow:
 
-```bash
-docker login --username=yourhubusername --email=youremail@company.com
-docker tag openenergymonitor/emoncms:<tag-name>
-docker push openenergymonitor/emoncms:<tag-name>
-```
+- **Pull requests** build both platforms (`linux/amd64`, `linux/arm64`) but do not push.
+- **Publishing is manual.** Run the workflow from the Actions tab (`workflow_dispatch`),
+  optionally choosing the PHP version, emoncms repository and branch. Pushing to `master`
+  does not publish an image.
+- If the `DOCKER_USERNAME` and `DOCKER_PASSWORD` secrets are set, the workflow pushes
+  `openenergymonitor/emoncms:latest` and `openenergymonitor/emoncms:<emoncms version>` to
+  Docker Hub. Otherwise, for example on a fork, it pushes the same tags to
+  `ghcr.io/<owner>/emoncms`.
 
-Tag name should be the Emoncms version e.g 10.x.x
-
-Also push the latest version using `latest` tag
-
-```bash
-docker tag openenergymonitor/emoncms:latest
-docker tag openenergymonitor/emoncms:latest
-```
+The PHP extensions are cross-compiled per architecture in a separate job, so the arm64
+build does not run a compiler under emulation.
