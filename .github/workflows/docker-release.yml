@@ -1,6 +1,8 @@
 name: Build and Push emoncms Docker Image
 
 on:
+  push:
+    branches: [master]
   pull_request:
   workflow_dispatch:
     inputs:
@@ -26,6 +28,12 @@ env:
   EMONCMS_BRANCH: ${{ inputs.branch || 'stable' }}
   # Debian release of the php:<version>-apache-<suite> base image
   DEBIAN_SUITE: trixie
+
+# Publishing runs queue so an older build cannot overwrite a newer :latest.
+# Superseded pull request builds are cancelled.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || 'publish' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   metadata:

@@ -287,9 +287,10 @@ Images are built and published by the
 [Build and Push emoncms Docker Image](.github/workflows/docker-release.yml) workflow:
 
 - **Pull requests** build both platforms (`linux/amd64`, `linux/arm64`) but do not push.
-- **Publishing is manual.** Run the workflow from the Actions tab (`workflow_dispatch`),
-  optionally choosing the PHP version, emoncms repository and branch. Pushing to `master`
-  does not publish an image.
+- **Pushes to `master`** build and publish the image using the defaults (PHP 8.4, the
+  `stable` branch of `emoncms/emoncms`).
+- **Manual runs** from the Actions tab (`workflow_dispatch`) also publish, and let you
+  choose the PHP version, emoncms repository and branch.
 - If the `DOCKER_USERNAME` and `DOCKER_PASSWORD` secrets are set, the workflow pushes
   `openenergymonitor/emoncms:latest` and `openenergymonitor/emoncms:<emoncms version>` to
   Docker Hub. Otherwise, for example on a fork, it pushes the same tags to
