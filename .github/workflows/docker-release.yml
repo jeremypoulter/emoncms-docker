@@ -8,21 +8,8 @@ on:
     # Weekly rebuild to pick up Debian package fixes on top of the pinned base.
     - cron: "17 4 * * 1"
   workflow_dispatch:
-    inputs:
-      emoncms_src:
-        description: emoncms_src
-        required: true
-        type: string
-        default: emoncms/emoncms
-      branch:
-        description: branch
-        required: true
-        type: string
-        default: stable
 
 env:
-  EMONCMS_SRC: ${{ inputs.emoncms_src || 'emoncms/emoncms' }}
-  EMONCMS_BRANCH: ${{ inputs.branch || 'stable' }}
 
 # Publishing runs queue so an older build cannot overwrite a newer :latest.
 # Superseded pull request builds are cancelled.
@@ -73,7 +60,9 @@ jobs:
         id: emoncms_version
         run: |
           set -euo pipefail
-          url="https://raw.githubusercontent.com/${EMONCMS_SRC}/${EMONCMS_BRANCH}/version.json"
+          # emoncms core is pinned in web/components.lock
+          commit=$(awk '$1 == "emoncms" { print $5 }' web/components.lock)
+          url="https://raw.githubusercontent.com/emoncms/emoncms/${commit}/version.json"
           version=$(curl -fsSL "$url" | jq --raw-output '.version')
           echo "$version"
           echo "version=$version" >> "$GITHUB_OUTPUT"
@@ -174,8 +163,6 @@ jobs:
           platforms: linux/amd64,linux/arm64
           build-args: |
             BUILD_FROM=${{ needs.metadata.outputs.php_image }}
-            EMONCMS_SRC=https://github.com/${{ env.EMONCMS_SRC }}
-            BRANCH=${{ env.EMONCMS_BRANCH }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ needs.metadata.outputs.tags }}
 

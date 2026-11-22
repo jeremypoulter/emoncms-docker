@@ -29,3 +29,12 @@ docker buildx build --platform linux/amd64,linux/arm64 \
 `sql_ready.sh` waits for MySQL, then runs `emoncmsdbupdate.php` (`db_schema_setup`) when the `users` table is missing.
 
 That oneshot must finish **before** Apache accepts HTTP traffic. It is registered in the **user** s6 bundle with `emoncms_pre → sql_ready → apache2`. (Previously `sql_ready` lived only under **user2**; with s6-overlay v3 the default target may not activate **user2**, so schema init never ran while Apache was already up.)
+
+## Pinned components
+
+`web/components.lock` pins emoncms core, each module and EmonScripts to a commit
+on its tracked ref (stable branch, or a tag for EmonScripts). `install-components.sh`
+installs them at build time and writes `/opt/openenergymonitor/components.manifest.json`
+(name, repository, ref, commit and the version from each component's own
+`module.json`/`version.json`). To bump one by hand, change its commit in the lock;
+Renovate does this through its `git-refs` custom manager (`renovate.json`).

@@ -13,8 +13,6 @@ ARG \
     S6_BUNDLES=/etc/s6-overlay/user-bundles.d \
     PRIMOS="apache2" \
     SECONDOS="emoncms_mqtt service-runner feedwriter sync_upload" \
-    EMONCMS_SRC=https://github.com/emoncms/emoncms \
-    BRANCH=master \
     DAEMON=www-data \
     WWW=/var/www \
     OEM_DIR=/opt/openenergymonitor \
@@ -77,18 +75,14 @@ RUN set -x;\
     tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz;\
     rm -f /tmp/s6-overlay-*.tar.xz
 
-# Clone emoncms core and modules
-RUN set -x;\
-    mkdir -p $OEM_DIR;\
-    mkdir -p $EMONCMS_DIR/modules;\
-    cd $WWW && git clone -b $BRANCH $EMONCMS_SRC;\
-    cd $WWW/emoncms/Modules && git clone https://github.com/emoncms/dashboard;\
-    cd $WWW/emoncms/Modules && git clone https://github.com/emoncms/graph;\
-    cd $WWW/emoncms/Modules && git clone https://github.com/emoncms/app;\
-    cd $WWW/emoncms/Modules && git clone https://github.com/emoncms/device;\
-    cd $EMONCMS_DIR/modules && git clone https://github.com/emoncms/sync;\
-    cd $EMONCMS_DIR/modules && git clone https://github.com/emoncms/postprocess;\
-    cd $EMONCMS_DIR/modules && git clone https://github.com/emoncms/backup;\
+# Install emoncms core, modules and EmonScripts at the commits pinned in components.lock.
+# sync, postprocess and backup live under $EMONCMS_DIR and are symlinked into Modules.
+COPY components.lock install-components.sh /tmp/
+RUN set -ex;\
+    mkdir -p $OEM_DIR $EMONCMS_DIR/modules;\
+    git config --system --replace-all safe.directory '*';\
+    /tmp/install-components.sh /tmp/components.lock $OEM_DIR/components.manifest.json;\
+    rm /tmp/components.lock /tmp/install-components.sh;\
     ln -s $EMONCMS_DIR/modules/sync $WWW/emoncms/Modules/sync;\
     ln -s $EMONCMS_DIR/modules/postprocess $WWW/emoncms/Modules/postprocess;\
     ln -s $EMONCMS_DIR/modules/backup $WWW/emoncms/Modules/backup;\
@@ -97,10 +91,7 @@ RUN set -x;\
 
 WORKDIR $OEM_DIR
 
-RUN set -x;\
-    git config --system --replace-all safe.directory '*';\
-    git clone https://github.com/openenergymonitor/EmonScripts;\
-    cp EmonScripts/install/emonsd.config.ini EmonScripts/install/config.ini
+RUN cp $OEM_DIR/EmonScripts/install/emonsd.config.ini $OEM_DIR/EmonScripts/install/config.ini
 
 COPY docker.settings.ini /var/www/emoncms/settings.ini
 

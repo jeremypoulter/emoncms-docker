@@ -1,0 +1,14 @@
+# EmonOS emoncms image: every component pinned to a commit.
+# Columns: name  install-path  repository  tracked-ref  commit
+# Renovate bumps `commit` along `tracked-ref` (git-refs datasource); there is no
+# semver automerge, and a bump must pass CI before it is merged.
+# app stays in the web image until EmonOS N60; EmonScripts stays at 1.9.8 until N70.
+emoncms        /var/www/emoncms                       https://github.com/emoncms/emoncms                  stable  148764d238cfd66ac8b527cac1de22f06cb06ff4
+dashboard      /var/www/emoncms/Modules/dashboard     https://github.com/emoncms/dashboard                stable  5c8b09cbd8c53e44a99a3bbdaf24f52992675bdd
+graph          /var/www/emoncms/Modules/graph         https://github.com/emoncms/graph                    stable  70a249c4380d25f2965a644433dd4bda0f0ad1fd
+app            /var/www/emoncms/Modules/app           https://github.com/emoncms/app                      stable  5a91cba18ac08c8dbe8e33811f12ea915b04399b
+device         /var/www/emoncms/Modules/device        https://github.com/emoncms/device                   stable  a72109f8665f0cadd299aea60aae8ecc5fe19380
+sync           /opt/emoncms/modules/sync              https://github.com/emoncms/sync                     stable  88dde7f1c88601b690b35836a56c8f78b63c91f7
+postprocess    /opt/emoncms/modules/postprocess       https://github.com/emoncms/postprocess              stable  81eccb16e89c12216fc9328c56f63b07917c114d
+backup         /opt/emoncms/modules/backup            https://github.com/emoncms/backup                   stable  3aad63259e3e3bd1ce13ac67d08fee9f45c9d4a7
+EmonScripts    /opt/openenergymonitor/EmonScripts     https://github.com/openenergymonitor/EmonScripts    1.9.8   ecde57dd22f04fc1a4a1d784f088ebea531ae37d
