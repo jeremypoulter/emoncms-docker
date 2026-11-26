@@ -5,7 +5,7 @@ target_arch=${1:?usage: build-php-extensions.sh <amd64|arm64> <php-root> <output
 php_root=${2:?missing extracted PHP root}
 output=${3:?missing output directory}
 
-PHPREDIS_COMMIT=df4fab2de7fc327c54c94a13af2b9542e4fbd720
+PHPREDIS_COMMIT=df4fab2de7fc327c54c94a13af2b9542e4fbd720 # phpredis 6.3.0
 MOSQUITTO_PHP_COMMIT=426a08afc452a5779a1404ffb875aed375431dfa
 PHP_API_EXPECTED=20240924
 
