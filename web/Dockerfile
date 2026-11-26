@@ -1,4 +1,5 @@
-ARG BUILD_FROM=php:8.4-apache-trixie
+# Pinned by digest; Renovate raises a PR when the digest changes.
+ARG BUILD_FROM=php:8.4-apache-trixie@sha256:3550aedd1c7bdfe26283c7b1550ef76509e6c2b1284aef814e6f2e325b7c9688
 
 # Official Docker PHP & Apache image https://hub.docker.com/_/php/
 FROM $BUILD_FROM

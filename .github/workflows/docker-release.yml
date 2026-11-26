@@ -4,13 +4,11 @@ on:
   push:
     branches: [master]
   pull_request:
+  schedule:
+    # Weekly rebuild to pick up Debian package fixes on top of the pinned base.
+    - cron: "17 4 * * 1"
   workflow_dispatch:
     inputs:
-      php_version:
-        description: php_version
-        required: true
-        type: string
-        default: "8.4"
       emoncms_src:
         description: emoncms_src
         required: true
@@ -23,11 +21,8 @@ on:
         default: stable
 
 env:
-  PHP_VERSION: ${{ inputs.php_version || '8.4' }}
   EMONCMS_SRC: ${{ inputs.emoncms_src || 'emoncms/emoncms' }}
   EMONCMS_BRANCH: ${{ inputs.branch || 'stable' }}
-  # Debian release of the php:<version>-apache-<suite> base image
-  DEBIAN_SUITE: trixie
 
 # Publishing runs queue so an older build cannot overwrite a newer :latest.
 # Superseded pull request builds are cancelled.
@@ -54,13 +49,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          tag="php:${PHP_VERSION}-apache-${DEBIAN_SUITE}"
-          digest=$(docker buildx imagetools inspect "$tag" --format '{{.Manifest.Digest}}')
-          case "$digest" in
-            sha256:*) ;;
-            *) printf 'Invalid PHP image digest: %s\n' "$digest" >&2; exit 1 ;;
+          # The digest-pinned base image lives in the Dockerfile so Renovate can bump it.
+          image=$(sed -n 's/^ARG BUILD_FROM=//p' web/Dockerfile)
+          case "$image" in
+            php:*@sha256:????????????????????????????????????????????????????????????????) ;;
+            *) printf 'web/Dockerfile BUILD_FROM is not digest-pinned: %s\n' "$image" >&2; exit 1 ;;
           esac
-          echo "image=${tag}@${digest}" >> "$GITHUB_OUTPUT"
+          echo "image=${image}" >> "$GITHUB_OUTPUT"
 
       - name: Check for Docker Hub credentials
         id: registry
@@ -183,3 +178,24 @@ jobs:
             BRANCH=${{ env.EMONCMS_BRANCH }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ needs.metadata.outputs.tags }}
+
+  scan:
+    # Scan the published image for known vulnerabilities (fixable HIGH/CRITICAL fail the job).
+    if: github.event_name != 'pull_request'
+    needs: [metadata, build-and-push]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pick image to scan
+        id: image
+        env:
+          TAGS: ${{ needs.metadata.outputs.tags }}
+        run: echo "ref=${TAGS%%,*}" >> "$GITHUB_OUTPUT"
+
+      - name: Scan image with Trivy
+        uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # v0.28.0
+        with:
+          image-ref: ${{ steps.image.outputs.ref }}
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          vuln-type: os,library
+          exit-code: "1"
