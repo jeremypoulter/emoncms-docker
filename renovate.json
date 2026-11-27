@@ -15,7 +15,7 @@
         "^web/components\\.lock$"
       ],
       "matchStrings": [
-        "^(?<depName>\\S+)\\s+\\S+\\s+(?<packageName>https://\\S+)\\s+(?<currentValue>\\S+)\\s+(?<currentDigest>[0-9a-f]{40})\\s*$"
+        "(?m)^(?<depName>\\S+)\\s+\\S+\\s+(?<packageName>https://\\S+)\\s+(?<currentValue>\\S+)\\s+(?<currentDigest>[0-9a-f]{40})\\s*$"
       ],
       "datasourceTemplate": "git-refs",
       "versioningTemplate": "git"
@@ -37,14 +37,14 @@
       "enabled": false
     },
     {
-      "description": "PHP base image digest bumps (same tag, new digest) automerge once the PR build and scan are green",
+      "description": "PHP base image digest bumps (same tag, new digest). Automerge stays off until the PR build scans the candidate image and master requires that check; then set automerge to true.",
       "matchDatasources": [
         "docker"
       ],
       "matchUpdateTypes": [
         "digest"
       ],
-      "automerge": true
+      "automerge": false
     }
   ]
 }
