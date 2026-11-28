@@ -1,15 +1,21 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended"],
+  "extends": [
+    "config:recommended"
+  ],
   "automerge": false,
-  "labels": ["area:deps"],
+  "labels": [
+    "area:deps"
+  ],
   "customManagers": [
     {
       "customType": "regex",
       "description": "Components pinned in web/components.lock: bump the commit along the tracked ref",
-      "managerFilePatterns": ["/^web/components\\.lock$/"],
+      "fileMatch": [
+        "^web/components\\.lock$"
+      ],
       "matchStrings": [
-        "^(?<depName>\\S+)\\s+\\S+\\s+(?<packageName>https://\\S+)\\s+(?<currentValue>\\S+)\\s+(?<currentDigest>[0-9a-f]{40})\\s*$"
+        "(?m)^(?<depName>\\S+)\\s+\\S+\\s+(?<packageName>https://\\S+)\\s+(?<currentValue>\\S+)\\s+(?<currentDigest>[0-9a-f]{40})\\s*$"
       ],
       "datasourceTemplate": "git-refs",
       "versioningTemplate": "git"
@@ -18,13 +24,27 @@
   "packageRules": [
     {
       "description": "Never automerge component bumps; the smoke and upgrade tests gate them",
-      "matchDatasources": ["git-refs"],
+      "matchDatasources": [
+        "git-refs"
+      ],
       "automerge": false
     },
     {
       "description": "EmonScripts stays at 1.9.8 until EmonOS N70",
-      "matchDepNames": ["EmonScripts"],
+      "matchDepNames": [
+        "EmonScripts"
+      ],
       "enabled": false
+    },
+    {
+      "description": "PHP base image digest bumps (same tag, new digest). Automerge stays off until the PR build scans the candidate image and master requires that check; then set automerge to true.",
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchUpdateTypes": [
+        "digest"
+      ],
+      "automerge": false
     }
   ]
 }
