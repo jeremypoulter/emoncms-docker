@@ -28,9 +28,10 @@ ENV \
     EMONCMS_LOG_LOCATION=/var/log/emoncms
 
 # Install dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Upgrade first: the base image is pinned by digest, so security fixes published since
+# that build are picked up here (the weekly rebuild refreshes them).
+RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
         iproute2 \
-        libcurl4-gnutls-dev \
         libmosquitto1 \
         gettext \
         nano \
