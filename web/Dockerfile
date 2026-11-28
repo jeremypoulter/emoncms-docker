@@ -30,7 +30,6 @@ ENV \
 # Install dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
         iproute2 \
-        libcurl4-gnutls-dev \
         libmosquitto1 \
         gettext \
         nano \
